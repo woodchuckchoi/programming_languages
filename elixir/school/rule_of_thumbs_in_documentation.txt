@@ -1,0 +1,11 @@
+1. Always document a module
+
+2. Even when there's no documentation to leave, use documentation property with false boolean value, like @moduledoc false
+
+3. When referring to functions, use backticks to specify `function/1`
+
+4. In between docs and functions, leave a newline
+
+5. Use markdown in docs
+
+6. Include examples as many as possible

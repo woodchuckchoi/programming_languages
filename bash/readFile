@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#first argument stored in FILE variable
+FILE=$1
+
+#tty0(stdin) input-redirects to tty3
+exec 3<&0
+#FILE input-redirects to tty0
+exec 0<$FILE
+#read command reads line by line from tty0(stdin) by default
+while read line
+do
+	echo $line
+done
+#takes stdin which was redirected to tty3 back to where it originally was
+exec 0<&3

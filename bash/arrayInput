@@ -1,0 +1,4 @@
+#!/bin/bash
+echo -e "What about this: \c"
+read -a args
+echo ${args[0]} ${args[1]}

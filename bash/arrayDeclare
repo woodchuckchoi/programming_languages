@@ -1,0 +1,8 @@
+#!/bin/bash
+arr=("test purpose" "and this" too)
+ele=${#arr[@]}
+
+for ((i=0;i<$ele;i++))
+do
+	echo ${arr[${i}]}
+done
