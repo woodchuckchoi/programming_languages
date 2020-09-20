@@ -10,13 +10,11 @@ union Data {
 int main() {
 	union Data tmp;
 
-	printf("Memory size: %ld\n", sizeof(tmp));
-
 	tmp.i = 10;
-	printf("Memory size: %ld\n", sizeof(tmp));
+	printf("I:%d F:%f STR:%s\n", tmp.i, tmp.f, tmp.str);
 	tmp.f = 200.5;
-	printf("Memory size: %ld\n", sizeof(tmp));
+	printf("I:%d F:%f STR:%s\n", tmp.i, tmp.f, tmp.str);
 	strcpy(tmp.str, "C programming");
-	printf("Memory size: %ld\n", sizeof(tmp));
+	printf("I:%d F:%f STR:%s\n", tmp.i, tmp.f, tmp.str);
 	return 0;
 }
