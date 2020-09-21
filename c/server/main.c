@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <netinet/in.h>
+#include <sys/socket.h> // provides constant variables as well as accept, bind, connect, listen, etc socket-related functions
+#include <unistd.h> // for read, write, close functions w/ POSIX interface
+#include <stdlib.h> 
+#include <netinet/in.h> // provides constant variables for address families (AF_INET for IPV4, AF_INET6 for IPV6, etc)
 #include <string.h>
 
 #define PORT 8080
@@ -14,7 +14,7 @@ int main() {
 	struct sockaddr_in address;
 	int addrlen = sizeof(address);
 
-	char *hello = "Hello";
+	char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
 
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
 		perror("IN SOCKET");
