@@ -14,7 +14,7 @@ int main() {
 	struct sockaddr_in address;
 	int addrlen = sizeof(address);
 
-	char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+	char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\nexpires: Tue, 29 Sep 2020 22:00:00 GMT\n\nHello world!";
 
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
 		perror("IN SOCKET");
