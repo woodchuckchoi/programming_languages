@@ -5,7 +5,7 @@
 #include <netinet/in.h> // provides constant variables for address families (AF_INET for IPV4, AF_INET6 for IPV6, etc)
 #include <string.h>
 
-#define PORT 8080
+#define PORT 8888
 
 int main() {
 	int server_fd, new_socket;

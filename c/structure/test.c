@@ -5,15 +5,10 @@ struct test {
 	int b;
 };
 
-void tester(struct test test) {
-	test.a = 10;
-}
-
 int main() {
-	struct test test;
-	test.a = 5;
-	test.b = 10;
-	tester(test);
-	printf("%d\n", test.a);
+	struct test test[10];
+	test[0].a = 5;
+	test[0].b = 10;
+	printf("%d\n", test[0].a);
 	return 0;
 }

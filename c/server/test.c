@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 	if (bind(server, (struct sockaddr*) &server_addr, sizeof(server_addr)) == -1)
 		error_handling("BIND ERROR");
 
-	if (listen(server, 5) == -1) // Server Queue Pool
+	if (listen(server, 1000) == -1) // Server Queue Pool
 		error_handling("LISTEN ERROR");
 
 	client_addr_size = sizeof(client_addr);
