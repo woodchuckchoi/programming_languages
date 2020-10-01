@@ -12,7 +12,7 @@ int main() {
 	char read_buffer[READ_SIZE + 1];
 
 	struct epoll_event event, events[MAX_EVENTS];
-	int epoll_fd = epoll_create1(0); // arg 0은 epoll_create()와 같다.
+	int epoll_fd = epoll_create1(0); // arg 0은 epoll_create()와 같다. epoll instance를 생성한다.
 
 	printf("EPOLL FD: %d\n", epoll_fd);
 
@@ -21,10 +21,11 @@ int main() {
 		return 1;
 	}
 
-	event.events = EPOLLIN;
+	// event는 아래의 epoll_ctl의 3번째 arg인 fd에 대한 정보를 제공한다.
+	event.events = EPOLLIN; // EPOLLIN(read) operation을 할 수 있을 때 이벤트를 생성한다.
 	event.data.fd = 0;
 
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, 0, &event)) {
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, 0, &event)) { // epoll_fd epoll instance에 *event와 같은 정보를 지닌 FD 0(stdin)을 추가(EPOLL_CTL_ADD)한다.
 		fprintf(stderr, "Failed to add file descriptor to epoll\n");
 		close(epoll_fd);
 		return 1;
@@ -32,7 +33,7 @@ int main() {
 
 	while (running) {
 		printf("\nPolling for input...\n");
-		event_count = epoll_wait(epoll_fd, events, MAX_EVENTS, 30000);
+		event_count = epoll_wait(epoll_fd, events, MAX_EVENTS, 30000); // epoll_fd instance에서 발생한 이벤트를 (최대 MAX_EVENTS) events에 저장한다. 30000 ms동안 블록한다.
 		printf("%d ready events\n", event_count);
 		for (i = 0; i < event_count; i++) {
 			printf("Reading file descriptor '%d' -- ", events[i].data.fd);
