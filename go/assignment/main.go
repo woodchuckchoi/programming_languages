@@ -5,11 +5,12 @@ import (
 	"log"
 	"regexp"
 	"strings"
+
+	"github.com/woodchuckchoi/assignment/server"
 )
 
 type KeyValueStorage struct {
-	Keys      []string       `json:"keys"`
-	Values    map[string]int `json:"values"`
+	KV        map[string]int `json:"values"`
 	Partition string         `json:"partition"`
 }
 
@@ -37,7 +38,7 @@ func (k *KeyValueStorage) Process() error {
 	for right < len(k.Partition) {
 		if k.Partition[right] == ' ' {
 			if left < right {
-				k.Values[strings.ToLower(k.Partition[left:right])]++
+				k.KV[strings.ToLower(k.Partition[left:right])]++
 
 				left = right + 1
 				for left < len(k.Partition) && k.Partition[left] == ' ' {
@@ -49,20 +50,19 @@ func (k *KeyValueStorage) Process() error {
 	}
 
 	if left < right {
-		k.Values[k.Partition[left:right]]++
+		k.KV[k.Partition[left:right]]++
 	}
 
 	return nil
 }
 
 func (k *KeyValueStorage) GetValue(key string) int {
-	return k.Values[key]
+	return k.KV[key]
 }
 
 func InitKeyValueStorage(p string) *KeyValueStorage {
 	k := KeyValueStorage{
-		Keys:      []string{},
-		Values:    map[string]int{},
+		KV:        map[string]int{},
 		Partition: p,
 	}
 
@@ -70,9 +70,10 @@ func InitKeyValueStorage(p string) *KeyValueStorage {
 }
 
 func main() {
+
 	k := InitKeyValueStorage("This is the example sentence. This sentence may contain unexpected symbols, such as comma and period.\nHow would it turn out to be?")
-
 	k.Process()
+	fmt.Println(k.KV)
 
-	fmt.Println(k.Values)
+	server.InitServer()
 }
