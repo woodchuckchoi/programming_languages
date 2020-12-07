@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -83,7 +82,7 @@ func (s *Server) getKeyHandler(c echo.Context) error {
 	}
 
 	cnt := s.KeyValue.GetValue(key)
-	log.Print(key, cnt)
+
 	cntStr := fmt.Sprintf("%v", cnt)
 
 	return c.JSON(http.StatusOK, Response{
