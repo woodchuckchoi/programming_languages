@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -65,13 +66,15 @@ func (s *Server) assignHandler(c echo.Context) error {
 	if err := c.Bind(Payload); err != nil {
 		return err
 	}
+	log.Print(Payload)
+	length := len(Payload.Load)
 
 	s.KeyValue.AssignPartition(Payload.Load)
 	if err := s.KeyValue.Process(); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, Response{
-		Data: "PAYLOAD RECEIVED",
+		Data: fmt.Sprintf("PAYLOAD %v BYTES RECEIVED", length),
 	})
 }
 
@@ -83,9 +86,7 @@ func (s *Server) getKeyHandler(c echo.Context) error {
 
 	cnt := s.KeyValue.GetValue(key)
 
-	cntStr := fmt.Sprintf("%v", cnt)
-
 	return c.JSON(http.StatusOK, Response{
-		Data: cntStr,
+		Data: fmt.Sprintf("Key: %v Value: %v", key, cnt),
 	})
 }
