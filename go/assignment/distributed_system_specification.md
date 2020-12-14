@@ -7,4 +7,5 @@ Master & Worker Structure
 2. Durable
     1. Replica - Master checks how many replicas does an entry have. If less than N, replication is triggered. Master directs the worker who has the original data to send a copy to other workers.
     2. Savepoint - Master saves the information about the workers periodically. (onto other masters?)
-    
+
+* Inspired by GFS Paper
