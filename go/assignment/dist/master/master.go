@@ -34,7 +34,7 @@ func (m *Master) Less(i, j int) bool {
 	return m.Workers[i].UID < m.Workers[j].UID
 }
 
-func (m *Master) AcknowledgeWorker(addr Address) {
+func (m *Master) acknowledgeWorker(addr Address) {
 	uid := uuid.New().String()
 
 	newWorker := Worker{
@@ -44,20 +44,40 @@ func (m *Master) AcknowledgeWorker(addr Address) {
 	m.Workers = append(m.Workers, newWorker)
 }
 
-func (m *Master) SortWorkers() {
+func (m *Master) sortWorkers() {
 	sort.Sort(m)
 }
 
-func GetLeastBusyWorkerWithKey(m *Master, key string, lastVisited Worker) *Worker {
-	workers := m.KeyWorkerMap[key]
-	var leastBusy *Worker
+func getLeastBusyWorker(m *Master) *Worker {
+	var (
+		load      int     = 100
+		leastBusy *Worker = nil
+	)
 
-	for _, worker := range workers {
-		if worker == lastVisited.UID {
+	for _, worker := range m.Workers {
+		if worker.Load < load {
+			load = worker.Load
+			leastBusy = &worker
+		}
+	}
+
+	return leastBusy
+}
+
+func getLeastBusyWorkerWithKey(m *Master, key string, lastVisited *Worker) *Worker {
+	workers := m.KeyWorkerMap[key]
+	if len(workers) == 0 {
+		return nil
+	}
+
+	leastBusy := getWorkerByUID(m, workers[0])
+
+	for _, worker := range workers[1:] {
+		if lastVisited != nil && worker == lastVisited.UID {
 			continue
 		}
 
-		curWorker := GetWorkerByUID(m, worker)
+		curWorker := getWorkerByUID(m, worker)
 
 		if leastBusy == nil || leastBusy.Load > curWorker.Load {
 			leastBusy = curWorker
@@ -67,7 +87,31 @@ func GetLeastBusyWorkerWithKey(m *Master, key string, lastVisited Worker) *Worke
 	return leastBusy
 }
 
-func GetWorkerByUID(m *Master, uid string) *Worker {
+func getWorkerByUID(m *Master, uid string) *Worker {
+	start, end := 0, len(m.Workers)
+	mid := (start + end) / 2
+	stuck := mid
+	ret := &(m.Workers[mid])
 
-	panic("Not Implemented")
+	for ret.UID != uid {
+		if ret.UID > uid {
+			end = mid
+		} else {
+			start = mid
+		}
+		mid = (start + end) / 2
+		if mid == stuck {
+			break
+		}
+		stuck = mid
+		ret = &(m.Workers[mid])
+	}
+
+	if ret.UID != uid {
+		return nil
+	}
+
+	return ret
 }
+
+// modules are pretty much done? Now distributed, cocurrnet service
