@@ -1,6 +1,8 @@
 package master
 
 import (
+	"sort"
+
 	"github.com/google/uuid"
 )
 
@@ -20,6 +22,18 @@ type Master struct {
 	KeyWorkerMap map[string][]string
 }
 
+func (m *Master) Len() int {
+	return len(m.Workers)
+}
+
+func (m *Master) Swap(i, j int) {
+	m.Workers[i], m.Workers[j] = m.Workers[j], m.Workers[i]
+}
+
+func (m *Master) Less(i, j int) bool {
+	return m.Workers[i].UID < m.Workers[j].UID
+}
+
 func (m *Master) AcknowledgeWorker(addr Address) {
 	uid := uuid.New().String()
 
@@ -28,6 +42,10 @@ func (m *Master) AcknowledgeWorker(addr Address) {
 		Addr: addr,
 	}
 	m.Workers = append(m.Workers, newWorker)
+}
+
+func (m *Master) SortWorkers() {
+	sort.Sort(m)
 }
 
 func GetLeastBusyWorkerWithKey(m *Master, key string, lastVisited Worker) *Worker {
@@ -50,6 +68,6 @@ func GetLeastBusyWorkerWithKey(m *Master, key string, lastVisited Worker) *Worke
 }
 
 func GetWorkerByUID(m *Master, uid string) *Worker {
-	// need to implement B-Tree and binary search on the master's workers
+
 	panic("Not Implemented")
 }
