@@ -10,7 +10,7 @@ func KorRuneToCodePoints(r rune) []rune {
 	kor := int(r - '가')
 
 	head := korHead[kor/(len(korMid)*len(korEnd))]
-	mid := korMid[kor%len(korHead)/len(korEnd)]
+	mid := korMid[kor%(len(korHead)*len(korEnd))/len(korEnd)]
 	end := korEnd[kor%len(korEnd)]
 
 	ret := []rune{head, mid}

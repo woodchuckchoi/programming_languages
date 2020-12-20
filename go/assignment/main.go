@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/woodchuckchoi/assignment/server"
+	"github.com/woodchuckchoi/assignment/auto"
 )
 
 func main() {
-	s := server.InitServer()
-	s.Start()
+	a := auto.InitialiseAutoCompleteServer()
+	a.Run()
 }

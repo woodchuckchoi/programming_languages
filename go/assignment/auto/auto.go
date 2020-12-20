@@ -16,6 +16,7 @@ func InitialiseAutoCompleter() *AutoCompleter {
 
 func (a *AutoCompleter) Refresh() *AutoCompleter {
 	copied := InitialiseAutoCompleter()
+	copied.Words = a.Words
 	for idx, word := range a.Words {
 		copied.AddWord(word, idx)
 	}

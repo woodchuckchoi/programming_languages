@@ -16,8 +16,16 @@ import (
 )
 
 const (
-	configFile = "./config.json"
+	configFile               = "./config.json"
+	timeOutInterval          = 1 * time.Second
+	healthCheckInterval      = 5 * time.Minute
+	healthCheckGraceInterval = 5 * time.Minute
+	refreshInterval          = 10 * time.Minute
 )
+
+type Search struct {
+	SearchString string `json:"search_string"`
+}
 
 type Request struct {
 	SearchString    string
@@ -45,6 +53,7 @@ type AutoCompleteServer struct {
 	RequestPool chan Request
 	Conf        Config
 	DBCon       *sql.DB
+	Update      chan []chan struct{}
 }
 
 func InitialiseAutoCompleteServer() *AutoCompleteServer {
@@ -74,60 +83,137 @@ func InitialiseAutoCompleteServer() *AutoCompleteServer {
 
 func (a *AutoCompleteServer) Run() {
 	go func() {
-		healthChecker := []chan chan struct{}{}
-		asyncFunctions := []func(<-chan chan struct{}){a.DBRetreiver, a.RequestSolver}
+		asyncFunctions := []func(chan chan<- struct{}){a.DBRetreiver, a.RequestSolver}
+		signal := make(chan int, len(asyncFunctions))
+
+		// initialise healthcheck
 		for i := 0; i < len(asyncFunctions); i++ {
-			checker := make(chan chan struct{})
-			go asyncFunctions[i](checker)
-			healthChecker = append(healthChecker, checker)
+			hc := make(chan chan<- struct{})
+			go keepRunning(asyncFunctions[i], hc, signal, i)
 		}
 
-		// for _, hcChannel := { // channel in channel
-
-		// }
+		for {
+			select {
+			case sig := <-signal:
+				hc := make(chan chan<- struct{})
+				go keepRunning(asyncFunctions[sig], hc, signal, sig)
+			}
+		}
 	}()
 
 	addr := fmt.Sprintf("%v:%v", a.Conf.ServerIP, a.Conf.ServerPORT)
 	a.Server.Logger.Fatal(a.Server.Start(addr))
 }
 
-func (a *AutoCompleteServer) DBRetreiver(heartbeat <-chan chan struct{}) {
-	select {
-	case hcChannel := <-heartbeat:
-		hcChannel <- struct{}{}
+func keepRunning(f func(chan chan<- struct{}), hc chan chan<- struct{}, signal chan<- int, index int) {
+	go f(hc)
+	isAlive := true
 
-	case <-time.After(5 * time.Minute):
-		data := []string{}
-		for _, query := range a.Conf.Queries {
-			rows, _ := a.DBCon.Query(query)
-			defer rows.Close()
+	for isAlive {
+		time.Sleep(healthCheckInterval)
+		newChan := make(chan struct{})
 
-			for rows.Next() {
-				var academy string
-				if err := rows.Scan(&academy); err != nil {
-					log.Fatal(err)
+		select {
+		case hc <- newChan:
+			select {
+			case _, ok := <-newChan:
+				if !ok {
+					isAlive = false
 				}
-				data = append(data, academy)
+			case <-time.After(healthCheckGraceInterval):
+				isAlive = false
 			}
+
+		case <-time.After(healthCheckGraceInterval):
+			isAlive = false
 		}
-		sort.Strings(data)
-		if !reflect.DeepEqual(data, a.Auto.Words) {
-			a.Auto.Words = data
-			refreshed := a.Auto.Refresh()
-			a.Auto = refreshed
+	}
+
+	close(hc)
+	signal <- index
+}
+
+func RetreiveWordsFromDB(a *AutoCompleteServer) []string {
+	data := []string{}
+	for _, query := range a.Conf.Queries {
+		rows, _ := a.DBCon.Query(query)
+		defer rows.Close()
+
+		for rows.Next() {
+			var academy string
+			if err := rows.Scan(&academy); err != nil {
+				log.Fatal(err)
+			}
+			data = append(data, academy)
+		}
+	}
+	sort.Strings(data)
+	return data
+}
+
+func (a *AutoCompleteServer) DBRetreiver(heartbeat chan chan<- struct{}) {
+	a.Auto.Words = RetreiveWordsFromDB(a)
+	a.Auto = a.Auto.Refresh()
+
+	for {
+		select {
+		case hcChannel := <-heartbeat:
+			hcChannel <- struct{}{}
+			close(hcChannel)
+
+		case <-time.After(refreshInterval):
+			data := RetreiveWordsFromDB(a)
+
+			// update notify
+			ackChan, finChan := make(chan struct{}), make(chan struct{})
+			a.Update <- []chan struct{}{ackChan, finChan}
+
+			select {
+			case _ = <-ackChan:
+				// update ready
+			}
+
+			if !reflect.DeepEqual(data, a.Auto.Words) {
+				a.Auto.Words = data
+				a.Auto = a.Auto.Refresh()
+			}
+
+			// update finished
+			finChan <- struct{}{}
+			close(finChan)
 		}
 	}
 }
 
-func (a *AutoCompleteServer) RequestSolver(heartbeat <-chan chan struct{}) {
-	select {
-	case req := <-a.RequestPool:
-		go func(r Request) {
-			req.ResponseChannel <- a.Auto.RetreiveWords(req.SearchString)
-			close(req.ResponseChannel)
-		}(req)
-	case hcChannel := <-heartbeat:
-		hcChannel <- struct{}{}
+func (a *AutoCompleteServer) RequestSolver(heartbeat chan chan<- struct{}) {
+	for {
+		select {
+		case req := <-a.RequestPool:
+			go func(r Request) {
+				req.ResponseChannel <- a.Auto.RetreiveWords(req.SearchString)
+				close(req.ResponseChannel)
+			}(req)
+
+		case hcChannel := <-heartbeat:
+			hcChannel <- struct{}{}
+			close(hcChannel)
+
+		case needsUpdate := <-a.Update:
+			ackChan, finChan := needsUpdate[0], needsUpdate[1]
+			// ackChan for notifying DBRetreiver that RequestSolver is on hold for update
+			// finChan for receiving from DBRetreiver that update is finished and RequestSolver can work again
+
+			// update ready
+			ackChan <- struct{}{}
+			close(ackChan)
+
+			// select blocking
+
+			select {
+			case _ = <-finChan:
+				// update finished
+			}
+		}
 	}
 }
 
@@ -159,14 +245,18 @@ func (a *AutoCompleteServer) ImportConfig() {
 }
 
 func (a *AutoCompleteServer) Route() {
-	a.Server.GET("/autocomplete/", a.AutoCompleteHandler)
+	a.Server.GET("/", func(c echo.Context) error {
+		return c.String(200, "test")
+	})
+	a.Server.POST("/autocomplete", a.AutoCompleteHandler)
 }
 
 func (a *AutoCompleteServer) AutoCompleteHandler(c echo.Context) error {
-	searchString := c.FormValue("search_string")
-	if searchString == "" {
+	var searchStringPayload Search
+	if err := c.Bind(&searchStringPayload); err != nil || len(searchStringPayload.SearchString) == 0 {
 		return c.NoContent(http.StatusBadRequest)
 	}
+	searchString := searchStringPayload.SearchString
 
 	respChan := make(chan []string)
 	req := Request{
@@ -176,17 +266,27 @@ func (a *AutoCompleteServer) AutoCompleteHandler(c echo.Context) error {
 
 	a.RequestPool <- req
 
-	go func(req Request, c echo.Context) error {
-		select {
-		case ret := <-req.ResponseChannel:
-			resp := Response{
-				AutoComplete: ret,
-			}
-			return c.JSON(http.StatusOK, resp)
-		case <-time.After(1 * time.Second):
-			return c.NoContent(http.StatusRequestTimeout)
+	select {
+	case ret := <-req.ResponseChannel:
+		resp := Response{
+			AutoComplete: ret,
 		}
-	}(req, c)
+		return c.JSON(http.StatusOK, resp)
+	case <-time.After(timeOutInterval):
+		return c.NoContent(http.StatusRequestTimeout)
+	}
 
-	return nil
+	// seems like there is no easy way for Echo Framework to handle async calls (context seems to be globally decided)
+	// go func(req Request, c echo.Context) error {
+	// 	select {
+	// 	case ret := <-req.ResponseChannel:
+	// 		resp := Response{
+	// 			AutoComplete: ret,
+	// 		}
+	// 		return c.JSON(http.StatusOK, resp)
+	// 	case <-time.After(timeOutInterval):
+	// 		return c.NoContent(http.StatusRequestTimeout)
+	// 	}
+	// }(req, c)
+	// return nil
 }
