@@ -276,17 +276,4 @@ func (a *AutoCompleteServer) AutoCompleteHandler(c echo.Context) error {
 		return c.NoContent(http.StatusRequestTimeout)
 	}
 
-	// seems like there is no easy way for Echo Framework to handle async calls (context seems to be globally decided)
-	// go func(req Request, c echo.Context) error {
-	// 	select {
-	// 	case ret := <-req.ResponseChannel:
-	// 		resp := Response{
-	// 			AutoComplete: ret,
-	// 		}
-	// 		return c.JSON(http.StatusOK, resp)
-	// 	case <-time.After(timeOutInterval):
-	// 		return c.NoContent(http.StatusRequestTimeout)
-	// 	}
-	// }(req, c)
-	// return nil
 }
