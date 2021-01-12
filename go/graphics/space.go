@@ -25,7 +25,7 @@ func InitPoint(x, y, z float64) Point {
 
 type Object struct {
 	Points []Point
-	Edges  [][]int
+	Edges  [][]bool
 }
 
 func InitObject(x, y, z float64) *Object {

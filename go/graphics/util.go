@@ -29,9 +29,8 @@ func clearScreen() {
 
 func filler(width, height int) [][]byte {
 	ret := [][]byte{}
-	row := []byte(strings.Repeat(" ", width))
 	for i := 0; i < height; i++ {
-		ret = append(ret, row)
+		ret = append(ret, []byte(strings.Repeat(" ", width)))
 	}
 
 	return ret
@@ -47,22 +46,20 @@ X
 */
 
 func addAxes(filler [][]byte) [][]byte {
-	width_centre, height_centre := len(filler[0])/2, len(filler)/2
+	widthCentre, heightCentre := len(filler[0])/2, len(filler)/2
+
+	// Y-axis
+	for j := widthCentre + 1; j < len(filler[0]); j++ {
+		filler[heightCentre][j] = '_'
+	}
 
 	for i := 0; i < len(filler); i++ {
 		// Z-axis
-		if i < height_centre {
-			filler[i][width_centre] = '|'
-
-			// Y-axis
-			if i == height_centre-1 {
-				for j := width_centre + 1; j < len(filler[0]); j++ {
-					filler[i][j] = '_'
-				}
-			}
+		if i <= heightCentre {
+			filler[i][widthCentre] = '|'
 		} else {
 			// X-axis
-			if cur := width_centre - (i - height_centre); cur >= 0 {
+			if cur := widthCentre - (i - heightCentre); cur >= 0 {
 				filler[i][cur] = '/'
 			}
 		}
