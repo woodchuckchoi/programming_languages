@@ -68,6 +68,25 @@ func addAxes(filler [][]byte) [][]byte {
 	return filler
 }
 
+func between(target, ceil int) bool {
+	if target >= 0 && target < ceil {
+		return true
+	}
+	return false
+}
+
+func addPoints(filler [][]byte, o *Object) [][]byte {
+	widthCentre, heightCentre := len(filler[0])/2, len(filler)/2
+	for _, pt := range o.Points {
+		height, width := heightCentre+pt.X-pt.Z, widthCentre-pt.X+pt.Y
+		if between(height, len(filler)) && between(width, len(filler[0])) {
+			filler[height][width] = '*'
+		}
+	}
+
+	return filler
+}
+
 func printByteSlice(graphics [][]byte) {
 	for i := 0; i < len(graphics); i++ {
 		line := string(graphics[i])

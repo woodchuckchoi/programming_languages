@@ -10,12 +10,12 @@ X
 */
 
 type Point struct {
-	X float64
-	Y float64
-	Z float64
+	X int
+	Y int
+	Z int
 }
 
-func InitPoint(x, y, z float64) Point {
+func InitPoint(x, y, z int) Point {
 	return Point{
 		X: x,
 		Y: y,
@@ -28,7 +28,7 @@ type Object struct {
 	Edges  [][]bool
 }
 
-func InitObject(x, y, z float64) *Object {
+func InitObject(x, y, z int) *Object {
 	p := InitPoint(x, y, z)
 	obj := Object{
 		Points: []Point{p},
@@ -81,8 +81,8 @@ func Visualise(o *Object) {
 	graphics := filler(width, height)
 
 	graphicsWithAxes := addAxes(graphics)
-	// object
-	printByteSlice(graphicsWithAxes)
+	graphicsWithPoints := addPoints(graphicsWithAxes, o)
+	printByteSlice(graphicsWithPoints)
 }
 
 type Vector struct {
