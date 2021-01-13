@@ -2,3 +2,4 @@
 *.gch
 *.txt
 *.json
+/go/graphics/render/two.js
