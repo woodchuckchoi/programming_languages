@@ -3,6 +3,7 @@
 module Tutorial
 where
 
+
 -- returns the number that has a higher value
 --
 max :: Ord a => a -> a -> a
@@ -154,7 +155,7 @@ isLower c = c >= 'a' && c <= 'z'
 -- isLower c = elem c ['a'..'z']
 
 mangle :: String -> String 
-mangle s | length s > 0 = tail s ++ [head s]
+mangle s | not(null s) = tail s ++ [head s]
          | otherwise = ""
 
 divide :: Int -> Int -> Int
