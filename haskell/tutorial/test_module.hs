@@ -3,6 +3,8 @@
 module Tutorial
 where
 
+import Data.Char
+import Data.Maybe
 
 -- returns the number that has a higher value
 --
@@ -34,7 +36,6 @@ addMul x y = (x + y, x * y)                     -- use fst, snd to decompose
 -- snd :: (a, b) -> b
 -- snd (x, y) = y
 
-type Point = (Int, Int)
 
 -- -- origin of the coordinate system
 -- -- 
@@ -53,7 +54,7 @@ type Point = (Int, Int)
 
 -- we represent colours by strings
 --
-type Colour = String 
+type Colour = String
 
 -- new name for the type of colour points
 --
@@ -73,7 +74,7 @@ move (x, y, colour) xDistance yDistance
 -- compute the distance between two colour points
 --
 distance :: ColourPoint -> ColourPoint -> Float
-distance (x1, y1, colour1) (x2, y2, colour2) 
+distance (x1, y1, colour1) (x2, y2, colour2)
   = sqrt (fromIntegral (dx * dx + dy * dy))
   where
     dx = x2 - x1
@@ -154,9 +155,193 @@ isLower :: Char -> Bool
 isLower c = c >= 'a' && c <= 'z'
 -- isLower c = elem c ['a'..'z']
 
-mangle :: String -> String 
+mangle :: String -> String
 mangle s | not(null s) = tail s ++ [head s]
          | otherwise = ""
 
 divide :: Int -> Int -> Int
-divide x y = length [x, x*2..y]
+divide x y = Prelude.length [x, x*2..y]
+
+natsum :: Int -> Int
+natsum x | x > 0 = x + natsum(x-1)
+         | otherwise = 0
+
+product :: Num a => [a] -> a
+product [] = 1
+product (x : xs)
+        = x * Tutorial.product xs
+
+repeatN :: Int -> a -> [a]
+repeatN 0 val = []
+repeatN n val = val : repeatN (n-1) val
+
+suffixes :: String -> [String]
+suffixes "" = []
+suffixes s = s : suffixes (tail s)
+
+allSquares :: Num a => [a] -> [a]
+allSquares xs = map (\ x -> x * x) xs
+-- allSquares []           = []
+-- allSquares (x : xs)     = x * x : allSquares xs
+
+allToUpper :: String -> String
+allToUpper []       = []
+allToUpper (x : xs) = toUpper x : allToUpper xs
+
+distanceFromPoint :: ColourPoint -> [ColourPoint] -> [Float]
+-- distanceFromPoint point []
+--         = []
+-- distanceFromPoint point (p : ps)
+--         = distance point p : distanceFromPoint point ps
+-- distanceFromPoint point ps
+--         = map (distance point) ps
+distanceFromPoint point
+        = map (distance point)
+
+extractDigits :: String -> String
+extractDigits []
+        = []
+extractDigits (chr : restString)
+        | isDigit chr = chr : extractDigits restString
+        | otherwise   =       extractDigits restString
+
+inRadius :: ColourPoint -> Float -> [ColourPoint] -> [ColourPoint]
+inRadius point radius []
+        = []
+inRadius point radius (p : ps)
+        | distance point p <= radius = p : inRadius point radius ps
+        | otherwise                  =     inRadius point radius ps
+
+minList :: [Int] -> Int
+minList (x:[]) = x
+minList (x:xs) = min x (minList xs)
+-- minList []           = maxBound
+-- minList (x:xs)       = x `min` minList xs
+
+reverse :: [a] -> [a]
+reverse [] = []
+reverse (x : xs) = Tutorial.reverse xs ++ [x]
+
+deductFromAccount :: Int -> [Int] -> Int
+deductFromAccount balance []
+        = balance
+deductFromAccount balance (d : ds)
+        | balance < d = error ("Your account balance is " ++ show balance ++
+                               " - cannot deduct " ++ show d ++ " cents")
+        | otherwise   = deductFromAccount (balance - d) ds
+
+stringToInt :: String -> Int
+stringToInt str = stringToIntAcc 0 str
+        where
+                stringToIntAcc :: Int -> String -> Int
+                stringToIntAcc acc []
+                        = acc
+                stringToIntAcc acc (chr : restString)
+                        = stringToIntAcc (10 * acc + digitToInt chr) restString
+
+fastReverse :: [a] -> [a]
+fastReverse xs = reverseAcc [] xs
+        where
+                reverseAcc :: [a] -> [a] -> [a]
+                reverseAcc accList []           = accList
+                reverseAcc accList (x : xs)     = reverseAcc (x : accList) xs
+
+betterSum :: Num a => [a] -> a
+betterSum xs = sumAcc 0 xs
+        where
+                sumAcc :: Num a => a -> [a] -> a
+                sumAcc acc []           = acc
+                sumAcc acc (x : xs)     = sumAcc (acc + x) xs -- Due to tail call recursion's performance, this function is more optimised than the sum function declared above
+
+
+sumEvenElems :: (Num a, Integral a) => [a] -> a
+sumEvenElems []
+        = 0
+sumEvenElems (x : xs)
+        | even x        = x + sumEvenElems xs
+        | otherwise     = sumEvenElems xs
+
+-- sumOfSquareRoots :: (Floating a, Ord a) => [a] -> a
+-- sumOfSquareRoots xs = sum (allSquareRoots (filterPositives xs))
+--         where
+--                 allSquareRoots []       = []
+--                 allSquareRoots (x:xs)   = sqrt x : allSquareRoots xs
+
+--                 filterPositives []      = []
+--                 filterPositives (x:xs)
+--                         | x > 0         = x : filterPositives xs
+--                         | otherwise     = filterPositives xs
+
+sumOfSquareRoots :: (Ord p, Floating p) => [p] -> p
+sumOfSquareRoots [] = 0
+sumOfSquareRoots (x:xs)
+        | x > 0         = sqrt x + sumOfSquareRoots xs
+        | otherwise     = sumOfSquareRoots xs
+
+
+type Point = (Float, Float)
+
+closestPoint :: Point -> [Point] -> Point
+closestPoint p pts = closestPointAcc p pts Nothing
+        where
+                closestPointAcc :: Point -> [Point] -> Maybe Point -> Point
+                closestPointAcc p (x : xs) Nothing = closestPointAcc p xs (Just x)
+                closestPointAcc p [] Nothing = error "No closest point."
+                closestPointAcc p [] (Just a) = a
+                closestPointAcc p (x : xs) (Just a)
+                        | pointDistance p x < pointDistance p a = closestPointAcc p xs (Just x)
+                        | otherwise                             = closestPointAcc p xs (Just a)
+
+                pointDistance :: Point -> Point -> Float
+                pointDistance (x0, y0) (x1, y1) = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0))
+
+-- Define the function length :: [a] -> Int. It is quite similar to sum and product in the way it traverses its input list. 
+length :: [a] -> Int
+length x = lengthAcc x 0
+        where
+                lengthAcc :: [a] -> Int -> Int
+                lengthAcc [] acc        = acc
+                lengthAcc (_:xs) acc    = lengthAcc xs acc+1
+
+-- Write a recursive function fact to compute the factorial of a given positive number (ignore the case of 0 for this exercise).
+fact :: Int -> Int
+fact n = factAcc n 1
+        where
+                factAcc :: Int -> Int -> Int
+                factAcc 0 acc = acc
+                factAcc n acc
+                        | n < 0         = error "No negative values allowed!"
+                        | otherwise     = factAcc (n-1) (acc*n)
+
+-- Write a recursive function enumFromTo which produces such a list given m and n, such that
+enumFromTo :: Int -> Int -> [Int]
+enumFromTo a b = if b >= a then enumFromToAcc a b [] else error "Not applicable"
+        where
+                enumFromToAcc :: Int -> Int -> [Int] -> [Int]
+                enumFromToAcc start cur en
+                        | start == cur  = cur:en
+                        | otherwise     = enumFromToAcc start (cur-1) (cur:en)
+
+-- Write a recursive function countOdds which calculates the number of odd elements in a list of Int values:
+countOdds :: [Int] -> Int
+countOdds x = countOddsAcc x 0
+        where
+                countOddsAcc :: [Int] -> Int -> Int
+                countOddsAcc [] acc     = acc
+                countOddsAcc (x:xs) acc
+                        | odd x         = countOddsAcc xs acc+1
+                        | otherwise     = countOddsAcc xs acc
+
+-- Write a recursive function removeOdd that, given a list of integers, removes all odd numbers from the list, e.g.,
+removeOdd :: [Int] -> [Int]
+removeOdd x = removeOddAcc x []
+        where
+                removeOddAcc [] acc     = acc
+                removeOddAcc (x : xs) acc
+                        | odd x         = removeOddAcc xs acc
+                        | otherwise     = removeOddAcc xs (acc++[x]) -- stable order
+
+-- Challenge: At the end of the last screencast, demonstrating the implementation of closestPoint :: Point -> [Point] -> Point, 
+-- we mentioned that the final implementation is less efficient than one might hope, 
+-- as it uses the distance functions twice —instead of once— per recursive step. Improve the implementation to avoid that inefficiency.
+-- ^ above, 284~296
