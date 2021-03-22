@@ -5,6 +5,7 @@ where
 
 import Data.Char
 import Data.Maybe
+import Prelude hiding (map, filter, foldr, foldl)
 
 -- returns the number that has a higher value
 --
@@ -54,7 +55,7 @@ addMul x y = (x + y, x * y)                     -- use fst, snd to decompose
 
 -- we represent colours by strings
 --
-type Colour = String
+-- type Colour = String
 
 -- new name for the type of colour points
 --
@@ -345,3 +346,95 @@ removeOdd x = removeOddAcc x []
 -- we mentioned that the final implementation is less efficient than one might hope, 
 -- as it uses the distance functions twice —instead of once— per recursive step. Improve the implementation to avoid that inefficiency.
 -- ^ above, 284~296
+
+type Line = (Point, Point)
+type Path = [Point]
+type Colour = (Int, Int, Int, Int) -- values are between 0 and 255
+type Picture = [(Colour, Path)]
+
+-- white, black, blue, red, green, lightgreen, oragne, magenta :: Colour
+
+spiralRays :: Float -> Float -> Int -> Colour -> Line -> Picture
+spiralRays angle scaleFactor n colour line -- line == line, fst line == p1, snd line == p2
+        = spiralRays' n colour line
+        where
+                spiralRays' n colour line@(p1, p2)
+                        | n <= 0        = []
+                        | otherwise     = (colour, [p1, p2]) : spiralRays' (n-1) newColour newLine
+                        where
+                                newColour       = fade colour
+                                newLine         = scaleLine scaleFactor (roateLine angle line)
+
+roateLine :: Float -> Line -> Line
+roateLine alpha ((x1, y1), (x2, y2))
+        = ((x1, y1), (x' + x1, y' + y1))
+        where
+                x0 = x2 - x1
+                y0 = y2 - y1
+                x' = x0 * cos alpha - y0 * sin alpha
+                y' = x0 * sin alpha + y0 * cos alpha
+
+scaleLine :: Float -> Line -> Line
+scaleLine factor ((x1, y1), (x2, y2))
+        = ((x1, y1), (x' + x1, y' + y1))
+        where
+                x0 = x2 - x1
+                y0 = y2 - y1
+                x' = factor * x0
+                y' = factor * y0
+
+fade :: Colour -> Colour
+fade (redC, greenC, blueC, opacityC)
+        = (redC, greenC, blueC, opacityC - 1)
+
+map :: (a -> b) -> [a] -> [b]
+map f []        = []
+map f (x:xs)    = f x : map f xs
+
+average :: Float -> Float -> Float
+average a b = (a + b) / 2.0
+
+-- zipWith average [1, 2, 3] [4, 5, 6]
+
+filter :: (a -> Bool) -> [a] -> [a]
+filter p []
+        = []
+filter p (x : xs)
+        | p x           = x : filter p xs
+        | otherwise     = filter p xs
+
+-- functionName a1 a2 ... an = body == \a1 a2 ... an -> body -- lambda (anonymous function) in Haskell
+
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr op n []           = n
+foldr op n (x:xs)       = x `op` foldr op n xs
+
+foldl :: (b -> a -> b) -> b -> [a] -> b
+foldl op acc []         = acc
+foldl op acc (x : xs)   = foldl op (acc `op` x) xs
+
+-- sumOfSquareRoots = sum $ map sqrt $ filter (>0) -- compile error
+-- sumOfSquareRoots = sum . map sqrt . filter (>0) -- compile
+
+-- 1. Define our old friend natSum :: Num a => a -> a (which sums the numbers from 1 up to the given argument) in terms of
+-- enumFromTo n m
+--   | n > m     = []
+--   | otherwise = n : enumFromTo (n + 1) m
+-- and one of the list combinators introduced in this chapter.
+
+natSum :: (Num a, Enum a) => a -> a
+natSum = sum . Prelude.enumFromTo 1
+
+-- The map function is just a special case of foldr. Can you rewrite the map definition in terms of foldr? Complete the following definition:
+
+myMap :: (a -> b) -> [a] -> [b]
+myMap f = foldr (\x acc -> (f x):acc) []
+
+spiralRays' :: Int -> (Int -> Colour) -> Line -> Picture
+spiralRays' n f line@(p1, p2)
+        | n <= 0        = []
+        | otherwise     = (f n, [p1, p2]) : spiralRays' (n-1) f newLine
+        where
+                newLine :: Line
+                newLine         = scaleLine 1.02 (roateLine (pi / 40) line)
+
