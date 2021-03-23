@@ -153,7 +153,7 @@ sort2 x y | x >= y = (x, y)
 --           else False
 
 isLower :: Char -> Bool
-isLower c = c >= 'a' && c <= 'z'
+isLower c = isAsciiLower c
 -- isLower c = elem c ['a'..'z']
 
 mangle :: String -> String
@@ -168,9 +168,7 @@ natsum x | x > 0 = x + natsum(x-1)
          | otherwise = 0
 
 product :: Num a => [a] -> a
-product [] = 1
-product (x : xs)
-        = x * Tutorial.product xs
+product xs = foldr (*) 1 xs
 
 repeatN :: Int -> a -> [a]
 repeatN 0 val = []
@@ -181,13 +179,12 @@ suffixes "" = []
 suffixes s = s : suffixes (tail s)
 
 allSquares :: Num a => [a] -> [a]
-allSquares xs = map (\ x -> x * x) xs
+allSquares = map (\ x -> x * x)
 -- allSquares []           = []
 -- allSquares (x : xs)     = x * x : allSquares xs
 
 allToUpper :: String -> String
-allToUpper []       = []
-allToUpper (x : xs) = toUpper x : allToUpper xs
+allToUpper xs = map toUpper xs
 
 distanceFromPoint :: ColourPoint -> [ColourPoint] -> [Float]
 -- distanceFromPoint point []
@@ -214,7 +211,7 @@ inRadius point radius (p : ps)
         | otherwise                  =     inRadius point radius ps
 
 minList :: [Int] -> Int
-minList (x:[]) = x
+minList [x] = x
 minList (x:xs) = min x (minList xs)
 -- minList []           = maxBound
 -- minList (x:xs)       = x `min` minList xs
@@ -232,7 +229,7 @@ deductFromAccount balance (d : ds)
         | otherwise   = deductFromAccount (balance - d) ds
 
 stringToInt :: String -> Int
-stringToInt str = stringToIntAcc 0 str
+stringToInt = stringToIntAcc 0
         where
                 stringToIntAcc :: Int -> String -> Int
                 stringToIntAcc acc []
@@ -280,7 +277,7 @@ sumOfSquareRoots (x:xs)
         | otherwise     = sumOfSquareRoots xs
 
 
-type Point = (Float, Float)
+-- type Point = (Float, Float)
 
 closestPoint :: Point -> [Point] -> Point
 closestPoint p pts = closestPointAcc p pts Nothing
@@ -294,7 +291,7 @@ closestPoint p pts = closestPointAcc p pts Nothing
                         | otherwise                             = closestPointAcc p xs (Just a)
 
                 pointDistance :: Point -> Point -> Float
-                pointDistance (x0, y0) (x1, y1) = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0))
+                pointDistance (Point x0 y0) (Point x1 y1) = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0))
 
 -- Define the function length :: [a] -> Int. It is quite similar to sum and product in the way it traverses its input list. 
 length :: [a] -> Int
@@ -349,7 +346,7 @@ removeOdd x = removeOddAcc x []
 
 type Line = (Point, Point)
 type Path = [Point]
-type Colour = (Int, Int, Int, Int) -- values are between 0 and 255
+-- type Colour = (Int, Int, Int, Int) -- values are between 0 and 255
 type Picture = [(Colour, Path)]
 
 -- white, black, blue, red, green, lightgreen, oragne, magenta :: Colour
@@ -366,8 +363,8 @@ spiralRays angle scaleFactor n colour line -- line == line, fst line == p1, snd 
                                 newLine         = scaleLine scaleFactor (roateLine angle line)
 
 roateLine :: Float -> Line -> Line
-roateLine alpha ((x1, y1), (x2, y2))
-        = ((x1, y1), (x' + x1, y' + y1))
+roateLine alpha ((Point x1 y1), (Point x2 y2))
+        = ((Point x1 y1), (Point (x' + x1) (y' + y1)))
         where
                 x0 = x2 - x1
                 y0 = y2 - y1
@@ -375,8 +372,8 @@ roateLine alpha ((x1, y1), (x2, y2))
                 y' = x0 * sin alpha + y0 * cos alpha
 
 scaleLine :: Float -> Line -> Line
-scaleLine factor ((x1, y1), (x2, y2))
-        = ((x1, y1), (x' + x1, y' + y1))
+scaleLine factor ((Point x1 y1), (Point x2 y2))
+        = ((Point x1 y1), (Point (x' + x1) (y' + y1)))
         where
                 x0 = x2 - x1
                 y0 = y2 - y1
@@ -384,12 +381,12 @@ scaleLine factor ((x1, y1), (x2, y2))
                 y' = factor * y0
 
 fade :: Colour -> Colour
-fade (redC, greenC, blueC, opacityC)
-        = (redC, greenC, blueC, opacityC - 1)
+fade (Colour redC greenC blueC opacityC)
+        = Colour redC greenC blueC (opacityC - 1)
 
 map :: (a -> b) -> [a] -> [b]
-map f []        = []
-map f (x:xs)    = f x : map f xs
+map f [] = []
+map f (x:xs) = f x : map f xs
 
 average :: Float -> Float -> Float
 average a b = (a + b) / 2.0
@@ -406,8 +403,7 @@ filter p (x : xs)
 -- functionName a1 a2 ... an = body == \a1 a2 ... an -> body -- lambda (anonymous function) in Haskell
 
 foldr :: (a -> b -> b) -> b -> [a] -> b
-foldr op n []           = n
-foldr op n (x:xs)       = x `op` foldr op n xs
+foldr op n xs = foldr op n xs
 
 foldl :: (b -> a -> b) -> b -> [a] -> b
 foldl op acc []         = acc
@@ -428,7 +424,7 @@ natSum = sum . Prelude.enumFromTo 1
 -- The map function is just a special case of foldr. Can you rewrite the map definition in terms of foldr? Complete the following definition:
 
 myMap :: (a -> b) -> [a] -> [b]
-myMap f = foldr (\x acc -> (f x):acc) []
+myMap f = map (\ x -> f x)
 
 spiralRays' :: Int -> (Int -> Colour) -> Line -> Picture
 spiralRays' n f line@(p1, p2)
@@ -438,3 +434,213 @@ spiralRays' n f line@(p1, p2)
                 newLine :: Line
                 newLine         = scaleLine 1.02 (roateLine (pi / 40) line)
 
+type FancyLine = (Point, Point, LineStyle)
+-- type LineStyle = String
+
+-- changeLineStyle :: FancyLine -> LineStyle -> FancyLine
+-- changeLineStyle (x, y, _) newStyle
+--   | newStyle `elem` ["solid", "dashed", "dotted"] = (x, y, newStyle)
+--   | otherwise 
+--   = error $ "error in changeLineStyle: " ++ newStyle ++ " is not a valid style" -- bad style -- errors can only be spotted at runtime
+
+data LineStyle -- equivalent to enum
+        = Solid
+        | Dashed
+        | Dotted
+        deriving (Show, Eq)
+
+myLine :: FancyLine
+myLine = (Point 0 0, Point 1 1, Dashed) -- now error can be checked at compile-time
+
+data Day
+        = Sunday
+        | Monday
+        | Tuesday
+        | Wednesday
+        | Thursday
+        | Friday
+        | Saturday
+        deriving (Enum, Eq, Show) -- tells Haskell compiler to include the Day datatype into the standard type class Enum
+
+someData :: [Day]
+someData = [Sunday .. Saturday] -- without the deriving part in Day declaration, this doesn't work
+
+-- isWeekday :: Day -> Bool
+-- isWeekday Sunday = False 
+-- isWeekday Saturday = False 
+-- isWeekday _ = True 
+
+-- isWeekday :: Day -> Bool
+-- isWeekday d = case d of
+--         Sunday -> False
+--         Saturday -> False
+--         _ -> True
+
+isWeekday :: Day -> Bool
+isWeekday d = not $ d `elem` [Sunday, Saturday] -- deriving Eq makes it possible to use elem here. Rule of thumbs, usually it is a good idea to include certain type classes in the deriving section, eg) Show
+
+-- type synonyms (Point = (Float, Float)) helps developers to distinguish variables, but doesn't help compilers distinguish them, as long as two variables have the same signature, compilers won't complain
+
+data Point = Point { xPoint     :: Float
+                    ,yPoint     :: Float
+        }
+        deriving (Show, Eq) -- by declaring this data type, the constructor 
+        -- Point :: Float -> Float -> Point
+        -- Point x y is also implemented automatically 
+
+data Vector = Vector Float Float
+        deriving (Show, Eq)
+
+pointToVector :: Point -> Vector
+pointToVector (Point x y) = Vector x y
+
+movePointN :: Float -> Vector -> Point -> Point
+movePointN n (Vector vx vy) (Point x y)
+        = Point (n * vx + x) (n * vy + y)
+
+data Colour
+        = Colour { redC         :: Int
+                  ,greenC       :: Int
+                  ,blueC        :: Int
+                  ,opacityC     :: Int
+        }
+        deriving (Show, Eq)
+
+red :: Colour
+red = Colour 255 0 0 255
+
+blue :: Colour
+blue = Colour {redC = 0, greenC = 0, blueC = 255, opacityC = 255}
+
+getGreenComponent :: Colour -> Int
+getGreenComponent = greenC -- Colour data type automatically generates this pattern matching variable
+-- getGreenComponent Colour {redC= _, greenC = green, blueC = _, opacityC = _}
+--         = green
+
+getRedComponent :: Colour -> Int
+getRedComponent Colour {redC = red} = red
+
+data FillStyle
+        = NoFill
+        | SolidFill
+        deriving (Show, Eq)
+
+-- data PictureObject 
+--   = Path    [Point]                   Colour LineStyle 
+--   | Circle  Point   Float             Colour LineStyle FillStyle 
+--   | Ellipse Point   Float Float Float Colour LineStyle FillStyle 
+--   | Polygon [Point]                   Colour LineStyle FillStyle
+--   deriving (Show, Eq) -- now Path, Circle, Ellipse, Polygon are all a kind of PictureObject (called SumType in Haskell)
+
+-- record update 
+-- <Expr> { <FieldName1> = <Expr1>, … <FieldNameN> = <ExprN> }
+
+aPoint :: Point
+aPoint = (Point 10 20){ xPoint= 30 } -- aPoint == Point 30 20
+
+data PictureObject
+  = Path
+    { pointsPO    :: [Point]
+    , colourPO    :: Colour
+    , lineStylePO :: LineStyle
+    }
+  | Circle
+    { centerPO    :: Point
+    , radiusPO    :: Float
+    , colourPO    :: Colour -- different constructors in the same sumType may have same field names
+    , lineStylePO :: LineStyle
+    , fillStylePO :: FillStyle
+    }
+  | Ellipse
+    { centerPO    :: Point
+    , widthPO     :: Float
+    , heightPO    :: Float
+    , rotationPO  :: Float
+    , colourPO    :: Colour
+    , lineStylePO :: LineStyle
+    , fillStylePO :: FillStyle
+    }
+  | Polygon
+    { pointsPO    :: [Point]
+    , colourPO    :: Colour
+    , lineStylePO :: LineStyle
+    , fillStylePO :: FillStyle
+    }
+  deriving (Show, Eq)
+
+setLineStyle :: PictureObject -> LineStyle -> PictureObject
+setLineStyle po newLineStyle = po{ lineStylePO = newLineStyle } -- simplified function, no copying, no nothing
+
+rotatePoint :: Float -> Point -> Point -> Point
+rotatePoint alpha (Point x0 y0) (Point x y)
+        = Point (cos alpha * nx - sin alpha * ny + x0)
+                (sin alpha * nx + cos alpha * ny + y0)
+        where
+                nx = x - x0
+                ny = y - y0
+
+rotatePictureObject :: Float -> Point -> PictureObject -> PictureObject
+rotatePictureObject angle point picObj@Circle{}
+  = picObj{ centerPO = rotatePoint angle point $ centerPO picObj }
+rotatePictureObject angle point picObj@Ellipse{}
+  = picObj{ centerPO   = rotatePoint angle point $ centerPO picObj
+          , rotationPO = rotationPO picObj + angle
+          }
+rotatePictureObject angle point picObj
+  = picObj{ pointsPO = map (rotatePoint angle point) $ pointsPO picObj }
+
+-- 1. Rewrite the defintion of map
+
+-- map :: (a -> b) -> [a] -> [b]
+-- map f [] = []
+-- map f (x : xs) = f x : map f xs
+-- to use case notation — i.e., complete the following definition
+
+anotherMap :: (a -> a) -> [a] -> [a]
+anotherMap f xs = case xs of
+        (xh : xt) -> f xh : anotherMap f xt
+        []        -> []
+
+nextDay :: Day -> Day
+nextDay d = toEnum (mod (fromEnum d + 1) 7)
+
+data TrumpValue =
+        TrumpAce
+        | TrumpTwo
+        | TrumpThree
+        | TrumpFour
+        | TrumpFive
+        | TrumpSix
+        | TrumpSeven
+        | TrumpEight
+        | TrumpNine
+        | TrumpTen
+        | TrumpJ
+        | TrumpQ
+        | TrumpK
+        deriving (Show, Eq, Enum)
+
+data Trump = 
+        Spade { cardNum :: TrumpValue
+        }
+        | Diamond { cardNum :: TrumpValue
+        }
+        | Heart { cardNum :: TrumpValue
+        }
+        | Clover { cardNum :: TrumpValue
+        }
+        deriving (Show, Eq)
+
+trumpToNum :: Trump -> Int
+trumpToNum trump = case trumpValue of
+        TrumpAce-> 11
+        TrumpJ  -> 10
+        TrumpQ  -> 10
+        TrumpK  -> 10
+        _       -> fromEnum trumpValue + 1
+        where
+                trumpValue :: TrumpValue
+                trumpValue = cardNum trump
+
+blackJack :: [Trump] -> Int
+blackJack cards = (\n -> if n <= 21 then n else n - 21) $ sum $ Tutorial.map trumpToNum cards
