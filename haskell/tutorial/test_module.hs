@@ -153,7 +153,7 @@ sort2 x y | x >= y = (x, y)
 --           else False
 
 isLower :: Char -> Bool
-isLower c = isAsciiLower c
+isLower = isAsciiLower
 -- isLower c = elem c ['a'..'z']
 
 mangle :: String -> String
@@ -168,7 +168,7 @@ natsum x | x > 0 = x + natsum(x-1)
          | otherwise = 0
 
 product :: Num a => [a] -> a
-product xs = foldr (*) 1 xs
+product = foldr (*) 1
 
 repeatN :: Int -> a -> [a]
 repeatN 0 val = []
@@ -184,7 +184,7 @@ allSquares = map (\ x -> x * x)
 -- allSquares (x : xs)     = x * x : allSquares xs
 
 allToUpper :: String -> String
-allToUpper xs = map toUpper xs
+allToUpper = map toUpper
 
 distanceFromPoint :: ColourPoint -> [ColourPoint] -> [Float]
 -- distanceFromPoint point []
@@ -280,15 +280,15 @@ sumOfSquareRoots (x:xs)
 -- type Point = (Float, Float)
 
 closestPoint :: Point -> [Point] -> Point
-closestPoint p pts = closestPointAcc p pts Nothing
+closestPoint p pts = closestPointAcc p pts Prelude.Nothing
         where
                 closestPointAcc :: Point -> [Point] -> Maybe Point -> Point
-                closestPointAcc p (x : xs) Nothing = closestPointAcc p xs (Just x)
-                closestPointAcc p [] Nothing = error "No closest point."
-                closestPointAcc p [] (Just a) = a
-                closestPointAcc p (x : xs) (Just a)
-                        | pointDistance p x < pointDistance p a = closestPointAcc p xs (Just x)
-                        | otherwise                             = closestPointAcc p xs (Just a)
+                closestPointAcc p (x : xs) Prelude.Nothing = closestPointAcc p xs (Prelude.Just x)
+                closestPointAcc p [] Prelude.Nothing = error "No closest point."
+                closestPointAcc p [] (Prelude.Just a) = a
+                closestPointAcc p (x : xs) (Prelude.Just a)
+                        | pointDistance p x < pointDistance p a = closestPointAcc p xs (Prelude.Just x)
+                        | otherwise                             = closestPointAcc p xs (Prelude.Just a)
 
                 pointDistance :: Point -> Point -> Float
                 pointDistance (Point x0 y0) (Point x1 y1) = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0))
@@ -363,8 +363,8 @@ spiralRays angle scaleFactor n colour line -- line == line, fst line == p1, snd 
                                 newLine         = scaleLine scaleFactor (roateLine angle line)
 
 roateLine :: Float -> Line -> Line
-roateLine alpha ((Point x1 y1), (Point x2 y2))
-        = ((Point x1 y1), (Point (x' + x1) (y' + y1)))
+roateLine alpha (Point x1 y1, Point x2 y2)
+        = (Point x1 y1, Point (x' + x1) (y' + y1))
         where
                 x0 = x2 - x1
                 y0 = y2 - y1
@@ -372,8 +372,8 @@ roateLine alpha ((Point x1 y1), (Point x2 y2))
                 y' = x0 * sin alpha + y0 * cos alpha
 
 scaleLine :: Float -> Line -> Line
-scaleLine factor ((Point x1 y1), (Point x2 y2))
-        = ((Point x1 y1), (Point (x' + x1) (y' + y1)))
+scaleLine factor (Point x1 y1, Point x2 y2)
+        = (Point x1 y1, Point (x' + x1) (y' + y1))
         where
                 x0 = x2 - x1
                 y0 = y2 - y1
@@ -385,8 +385,7 @@ fade (Colour redC greenC blueC opacityC)
         = Colour redC greenC blueC (opacityC - 1)
 
 map :: (a -> b) -> [a] -> [b]
-map f [] = []
-map f (x:xs) = f x : map f xs
+map f xs = map f xs
 
 average :: Float -> Float -> Float
 average a b = (a + b) / 2.0
@@ -403,7 +402,7 @@ filter p (x : xs)
 -- functionName a1 a2 ... an = body == \a1 a2 ... an -> body -- lambda (anonymous function) in Haskell
 
 foldr :: (a -> b -> b) -> b -> [a] -> b
-foldr op n xs = foldr op n xs
+foldr = foldr
 
 foldl :: (b -> a -> b) -> b -> [a] -> b
 foldl op acc []         = acc
@@ -424,7 +423,7 @@ natSum = sum . Prelude.enumFromTo 1
 -- The map function is just a special case of foldr. Can you rewrite the map definition in terms of foldr? Complete the following definition:
 
 myMap :: (a -> b) -> [a] -> [b]
-myMap f = map (\ x -> f x)
+myMap f = map f
 
 spiralRays' :: Int -> (Int -> Colour) -> Line -> Picture
 spiralRays' n f line@(p1, p2)
@@ -477,7 +476,7 @@ someData = [Sunday .. Saturday] -- without the deriving part in Day declaration,
 --         _ -> True
 
 isWeekday :: Day -> Bool
-isWeekday d = not $ d `elem` [Sunday, Saturday] -- deriving Eq makes it possible to use elem here. Rule of thumbs, usually it is a good idea to include certain type classes in the deriving section, eg) Show
+isWeekday d = notElem d [Sunday, Saturday] -- deriving Eq makes it possible to use elem here. Rule of thumbs, usually it is a good idea to include certain type classes in the deriving section, eg) Show
 
 -- type synonyms (Point = (Float, Float)) helps developers to distinguish variables, but doesn't help compilers distinguish them, as long as two variables have the same signature, compilers won't complain
 
@@ -620,7 +619,7 @@ data TrumpValue =
         | TrumpK
         deriving (Show, Eq, Enum)
 
-data Trump = 
+data Trump =
         Spade { cardNum :: TrumpValue
         }
         | Diamond { cardNum :: TrumpValue
@@ -644,3 +643,146 @@ trumpToNum trump = case trumpValue of
 
 blackJack :: [Trump] -> Int
 blackJack cards = (\n -> if n <= 21 then n else n - 21) $ sum $ Tutorial.map trumpToNum cards
+
+data MaybeInt a
+        = Just a
+        | Nothing
+
+(!+!) :: Show a => [a] -> Int -> MaybeInt a
+[]      !+! _ = Tutorial.Nothing
+(x : _) !+! 0 = Tutorial.Just x
+(_ : xs)!+! n = xs !+! (n-1)
+
+showFifthElement :: Show a => [a] -> String
+showFifthElement xs
+        = case xs !+! 4 of
+                Tutorial.Nothing -> "there is no fifth element in this list"
+                Tutorial.Just n -> "the fifth element of the list is " ++ show n
+
+-- data Maybe a
+--         = Just a
+--         | Nothing
+
+-- isElement :: Eq a => a -> [a] -> Bool -- Too time-consuming O(n)
+-- isElement _ []          = False 
+-- isElement a (x:xs)
+--         | a == x        = True 
+--         | otherwise     = isElement a xs
+
+-- precondition: list is sorted in increasing order
+-- isElementSorted :: Ord a => a -> [a] -> Bool -- but this improvement is not free, as we have to sort the list
+-- isElementSorted _ []    = False 
+-- isElementSorted a (x:xs)
+--         | a == x        = True 
+--         | a > x         = False
+--         | otherwise     = isElementSorted a xs
+
+-- precondition: list is sorted in increasing order
+-- postconditioni: return list is sorted in increasing order
+-- insertSorted :: Ord a => a -> [a] -> Bool
+-- insertSorted x []       = [x]
+-- insertSorted x (y:ys)
+--         | x <= y        = x : y : ys
+--         | otherwise     = y : insertSorted x ys
+
+-- implement Tree
+data BinaryTree a
+        = Node a (BinaryTree a) (BinaryTree a)
+        | Leaf
+
+-- precondition: tree is sorted in increasing order
+-- postcondition: return tree is sorted in increasing order
+insertTree :: Ord a => a -> BinaryTree a -> BinaryTree a
+insertTree x Leaf
+        = Node x Leaf Leaf
+insertTree newValue (Node nodeValue leftSubTree rightSubTree)
+        | newValue < nodeValue  = Node nodeValue (insertTree newValue leftSubTree) rightSubTree
+        | otherwise             = Node nodeValue leftSubTree (insertTree newValue rightSubTree)
+
+isElementTree :: Ord a => a -> BinaryTree a -> Bool
+isElementTree x Leaf = False
+isElementTree value (Node nodeValue leftSubTree rightSubTree)
+        | value == nodeValue    = True
+        | value < nodeValue     = isElementTree value leftSubTree
+        | otherwise             = isElementTree value rightSubTree
+
+-- balancing is a big issue in Tree, if 
+
+
+-- new type
+-- data Celsius    = Celsius       Float   -- those two types cannot be used interchangeably
+-- data Fahrenheit = Fahrenheit    Float
+
+-- above can be rewritten as below
+newtype Celsius         = Celsius Float
+newtype Fahrenheit      = Fahrenheit Float
+
+myHead :: [a] -> Maybe a
+myHead l@(x:_)
+        | not $ null l = Prelude.Just x
+        | otherwise = Prelude.Nothing
+
+myTail :: [a] -> Maybe [a]
+myTail l@(_:xs)
+        | not $ null xs = Prelude.Just xs
+        | otherwise = Prelude.Nothing
+
+myLength :: [a] -> Int
+myLength l = myLengthAcc l 0
+        where
+                myLengthAcc :: [a] -> Int -> Int
+                myLengthAcc [] i = 0
+                myLengthAcc l@(_:xs) i = case myTail l of
+                        Prelude.Nothing -> i+1
+                        _ -> myLengthAcc xs i+1
+
+deleteSorted :: Ord a => a -> [a] -> [a]
+deleteSorted target list@(x:xs)
+        | target == x   = xs
+        | target > x    = list
+        | otherwise     = x : deleteSorted target xs
+
+deleteSmallestTree :: Ord a => BinaryTree a -> BinaryTree a
+deleteSmallestTree Leaf = Leaf
+deleteSmallestTree (Node nodeValue leftSubTree rightSubTree) = case leftSubTree of
+        Node {} -> Node nodeValue (deleteSmallestTree leftSubTree) rightSubTree
+        Leaf    -> rightSubTree
+
+treeToList :: Ord a => BinaryTree a -> [a] -- pre-order, in-order, post-order
+treeToList Leaf = []
+treeToList (Node nodeValue leftSubTree rightSubTree) = treeToList leftSubTree ++ [nodeValue] ++ treeToList rightSubTree
+
+buildTree :: Ord a => a -> BinaryTree a -> BinaryTree a
+buildTree value Leaf = Node value Leaf Leaf
+buildTree value (Node nodeValue leftSubTree rightSubTree)
+        | value < nodeValue     = Node nodeValue (buildTree value leftSubTree) rightSubTree
+        | otherwise             = Node nodeValue leftSubTree (buildTree value rightSubTree) -- same values go to the right side
+
+midFirst :: Ord a => [a] -> [a]
+midFirst l@(x:xs) = l !! halfIdx : theOtherList xs 1
+        where
+                halfIdx :: Int
+                halfIdx = div (Prelude.length l) 2
+                theOtherList :: [a] -> Int -> [a]
+                theOtherList (x:xs) idx
+                        | idx == halfIdx        = xs
+                        | otherwise             = x : theOtherList xs (idx+1)
+
+deleteTree :: Ord a => a -> BinaryTree a -> BinaryTree a
+deleteTree target Leaf = Leaf
+deleteTree target (Node nodeValue leftSubTree rightSubTree)
+        | target < nodeValue    = Node nodeValue (deleteTree target leftSubTree) rightSubTree
+        | target > nodeValue    = Node nodeValue leftSubTree (deleteTree target rightSubTree)
+        | target == nodeValue   = foldr buildTree Leaf listedMidFirst
+                where
+                        listedMidFirst = innerMidFirst $ treeToList leftSubTree ++ treeToList rightSubTree
+
+                        innerMidFirst :: [a] -> [a]
+                        innerMidFirst l@(x:xs) = l !! halfIdx : theOtherList xs 1
+                                where
+                                        halfIdx :: Int
+                                        halfIdx = div (Prelude.length l) 2
+                                        theOtherList :: [a] -> Int -> [a]
+                                        theOtherList (x:xs) idx
+                                                | idx == halfIdx        = xs
+                                                | otherwise             = x : theOtherList xs (idx+1)
