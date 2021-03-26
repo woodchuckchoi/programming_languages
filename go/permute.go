@@ -1,26 +1,39 @@
 package main
 
 import (
-	"fmt"
+  "fmt"
 )
 
-func permute(nums []int) [][]int {
-	ret := [][]int {{}}
+func permute(curSlice []int, curIdx int, record *[][]int) {
+  if curIdx == len(curSlice) -1 {
+    *record = append(*record, copySlice(curSlice))
+  }
 
-	for _, num := range nums {
-		nextRet := ret
-		for i:=0; i<len(ret); i++ {
-			tmp := ret[i]
-			tmp = append(tmp, num)
-			nextRet = append(nextRet, tmp)
-		}
-		ret = nextRet
-	}
+  for i:=curIdx; i<len(curSlice); i++ {
+    swapSlice(curSlice, curIdx, i)
 
-	return ret[1:] // get rid of the empty slice
+    permute(curSlice, curIdx+1, record)
+
+    swapSlice(curSlice, curIdx, i)
+  }
+}
+
+func swapSlice(slice []int, a, b int) {
+  tmp := slice[a]
+  slice[a] = slice[b]
+  slice[b] = tmp
+}
+
+func copySlice(origin []int) []int {
+  ret := make([]int, len(origin))
+  for idx, val := range origin {
+    ret[idx] = val
+  }
+  return ret
 }
 
 func main() {
-	fmt.Println(permute([]int{1,2,3,4}))
+  record := &[][]int {}
+  permute([]int {1,2,3}, 0, record)
+  fmt.Println(*record)
 }
-
