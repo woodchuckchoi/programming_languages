@@ -4,3 +4,4 @@
 *.json
 /go/graphics/render/two.js
 *node_modules
+/haskell/dist*
