@@ -16,11 +16,14 @@ extra-source-files:  CHANGELOG.md
 cabal-version:       >=1.10
 
 library
-  exposed-modules:  Another
+  hs-source-dirs:   src
+  exposed-modules:  Tutorial.Another
+                    Tutorial.Something
+                    Tutorial.Test1
+                    Tutorial.Test2
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.12 && <4.13
-  -- hs-source-dirs:
   default-language:    Haskell2010
 
 executable tutorial
@@ -28,5 +31,6 @@ executable tutorial
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.12 && <4.13
+                      ,tutorial
   -- hs-source-dirs:
   default-language:    Haskell2010

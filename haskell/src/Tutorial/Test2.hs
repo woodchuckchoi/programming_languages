@@ -1,4 +1,4 @@
-module AnotherTutorial where
+module Tutorial.Test2 where
 
   import Data.Char 
 

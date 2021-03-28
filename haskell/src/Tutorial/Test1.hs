@@ -1,6 +1,4 @@
--- Tutorial Module
-
-module Tutorial
+module Tutorial.Test1
 where
 
 import Data.Char
@@ -218,7 +216,7 @@ minList (x:xs) = min x (minList xs)
 
 reverse :: [a] -> [a]
 reverse [] = []
-reverse (x : xs) = Tutorial.reverse xs ++ [x]
+reverse (x : xs) = Tutorial.Test1.reverse xs ++ [x]
 
 deductFromAccount :: Int -> [Int] -> Int
 deductFromAccount balance []
@@ -642,22 +640,22 @@ trumpToNum trump = case trumpValue of
                 trumpValue = cardNum trump
 
 blackJack :: [Trump] -> Int
-blackJack cards = (\n -> if n <= 21 then n else n - 21) $ sum $ Tutorial.map trumpToNum cards
+blackJack cards = (\n -> if n <= 21 then n else n - 21) $ sum $ Tutorial.Test1.map trumpToNum cards
 
 data MaybeInt a
         = Just a
         | Nothing
 
 (!+!) :: Show a => [a] -> Int -> MaybeInt a
-[]      !+! _ = Tutorial.Nothing
-(x : _) !+! 0 = Tutorial.Just x
+[]      !+! _ = Tutorial.Test1.Nothing
+(x : _) !+! 0 = Tutorial.Test1.Just x
 (_ : xs)!+! n = xs !+! (n-1)
 
 showFifthElement :: Show a => [a] -> String
 showFifthElement xs
         = case xs !+! 4 of
-                Tutorial.Nothing -> "there is no fifth element in this list"
-                Tutorial.Just n -> "the fifth element of the list is " ++ show n
+                Tutorial.Test1.Nothing -> "there is no fifth element in this list"
+                Tutorial.Test1.Just n -> "the fifth element of the list is " ++ show n
 
 -- data Maybe a
 --         = Just a
