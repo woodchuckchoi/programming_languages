@@ -83,3 +83,8 @@ where
   fn x = ceiling (negate (tan (cos (max 50 x))))  -- == fn = ceiling . negate . tan . cos . max 50
   -- sum (replicate 5 (max 6.7 8.9)) == (sum . replicate 5 . max 6.7) 8.9 or sum . replicate 5 . max 6.7 $ 8.9
   -- oddSquareSum = sum (takeWhile (<10000) (filter odd (map (^2) [1..]))) == oddSquareSum = sum . takeWhile (<10000) . filter odd . map (^2) $ [1..]  
+
+  -- import Data.List (nub, sort)   selective import
+  -- import Data.List hiding (nub)  selective import (negative) 
+  -- import qualified Data.Map      functions from Data.Map that have the same function name can only be accessed by Data.Map.func
+  -- import Data.Map as MM          rename imported module

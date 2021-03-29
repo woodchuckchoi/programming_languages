@@ -21,6 +21,10 @@ library
                     Tutorial.Something
                     Tutorial.Test1
                     Tutorial.Test2
+                    Tutorial.Geometry
+                    Geometry.Cube
+                    Geometry.Cuboid
+                    Geometry.Sphere
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.12 && <4.13
