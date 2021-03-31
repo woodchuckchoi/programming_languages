@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                tutorial
-version:             0.1.0.0
+version:             0.1.0.1
 -- synopsis:
 -- description:
 license:             BSD3
@@ -23,6 +23,7 @@ library
                     Tutorial.Test2
                     Tutorial.Geometry
                     Tutorial.Typer
+                    Tutorial.IO
                     Geometry.Cube
                     Geometry.Cuboid
                     Geometry.Sphere
@@ -39,5 +40,7 @@ executable tutorial
   build-depends:       base >=4.12 && <4.13
                       ,tutorial
                       ,containers
+                      ,directory
+                      ,random
   -- hs-source-dirs:
   default-language:    Haskell2010
