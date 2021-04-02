@@ -28,6 +28,7 @@ library
                     Geometry.Cuboid
                     Geometry.Sphere
                     Algorithm.Algo
+                    Types.Types
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.12 && <4.13,
